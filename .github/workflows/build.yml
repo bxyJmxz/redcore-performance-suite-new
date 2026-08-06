@@ -11,12 +11,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Unzip project
+      - name: Unzip project and locate root
         run: |
-          unzip -o RedCorePerformanceSuite.zip -d extracted
-          mv extracted/RedCore/* .
-          mv extracted/RedCore/.[!.]* . 2>/dev/null || true
-          rm -rf extracted RedCorePerformanceSuite.zip
+          find . -maxdepth 1 -name "*.zip" -exec unzip -o {} -d extracted \;
+          echo "Extracted contents:"
+          find extracted -maxdepth 3
+          GRADLEW_PATH=$(find extracted -name "gradlew" | head -n 1)
+          PROJECT_ROOT=$(dirname "$GRADLEW_PATH")
+          echo "Found project root at: $PROJECT_ROOT"
+          cp -r "$PROJECT_ROOT"/. .
+          rm -rf extracted *.zip
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
