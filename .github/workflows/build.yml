@@ -14,12 +14,10 @@ jobs:
       - name: Unzip project and locate root
         run: |
           find . -maxdepth 1 -name "*.zip" -exec unzip -o {} -d extracted \;
-          echo "Extracted contents:"
-          find extracted -maxdepth 3
-          GRADLEW_PATH=$(find extracted -name "gradlew" | head -n 1)
-          PROJECT_ROOT=$(dirname "$GRADLEW_PATH")
+          PROJECT_ROOT=$(find extracted -maxdepth 1 -mindepth 1 -type d | head -n 1)
           echo "Found project root at: $PROJECT_ROOT"
-          cp -r "$PROJECT_ROOT"/. .
+          shopt -s dotglob
+          cp -r "$PROJECT_ROOT"/* .
           rm -rf extracted *.zip
 
       - name: Set up JDK 17
@@ -28,11 +26,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug
+        run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
